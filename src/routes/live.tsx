@@ -39,7 +39,7 @@ function Live() {
   useEffect(() => {
     if (!on) return;
     const id = setInterval(() => {
-      const sign = EMERGENCY_SIGNS[Math.floor(Math.random() * EMERGENCY_SIGNS.length)];
+      const sign = EMERGENCY_SIGNS[Math.floor(Math.random() * EMERGENCY_SIGNS.length)]!;
       const p = { name: sign.name, confidence: Math.round(82 + Math.random() * 17) };
       setCurrent(p);
       setHistory((h) => [p, ...h].slice(0, 6));
