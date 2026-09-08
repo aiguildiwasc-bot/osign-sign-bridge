@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, CameraOff } from "lucide-react";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
-import { EMERGENCY_SIGNS } from "@/data/signs";
 
 export const Route = createFileRoute("/live")({
   head: () => ({
@@ -36,14 +35,47 @@ function Live() {
   const [current, setCurrent] = useState<Prediction | null>(null);
   const [history, setHistory] = useState<Prediction[]>([]);
 
+  // ===== REAL PREDICTION WITH FLASK =====
   useEffect(() => {
     if (!on) return;
-    const id = setInterval(() => {
-      const sign = EMERGENCY_SIGNS[Math.floor(Math.random() * EMERGENCY_SIGNS.length)]!;
-      const p = { name: sign.name, confidence: Math.round(82 + Math.random() * 17) };
-      setCurrent(p);
-      setHistory((h) => [p, ...h].slice(0, 6));
-    }, 2200);
+
+    const captureAndPredict = async () => {
+      if (!videoRef.current) return;
+
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = canvas.toDataURL("image/jpeg");
+
+      try {
+        // 🔥 CHANGE THIS URL to your Flask backend
+        const response = await fetch("http://127.0.0.1:5000/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: imageData }),
+        });
+
+        const data = await response.json();
+
+        if (data.sign && data.sign !== "No sign detected") {
+          const p = {
+            name: data.sign,
+            confidence: Math.round((data.confidence || 0) * 100),
+          };
+          setCurrent(p);
+          setHistory((h) => [p, ...h].slice(0, 6));
+        }
+      } catch (err) {
+        console.error("Prediction error:", err);
+      }
+    };
+
+    const id = setInterval(captureAndPredict, 1000);
     return () => clearInterval(id);
   }, [on]);
 
