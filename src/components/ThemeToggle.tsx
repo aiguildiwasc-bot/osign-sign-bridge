@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { Laptop, Moon, Sun, type LucideIcon } from "lucide-react";
 
 type Theme = "dark" | "light" | "system";
 
-const OPTIONS: { value: Theme; icon: string; label: string }[] = [
-  { value: "dark", icon: "🌙", label: "Dark" },
-  { value: "light", icon: "☀️", label: "Light" },
-  { value: "system", icon: "💻", label: "System" },
+const OPTIONS: { value: Theme; icon: LucideIcon; label: string }[] = [
+  { value: "dark", icon: Moon, label: "Dark" },
+  { value: "light", icon: Sun, label: "Light" },
+  { value: "system", icon: Laptop, label: "System" },
 ];
 
 export function applyTheme(theme: Theme) {
@@ -41,19 +42,26 @@ export function ThemeToggle() {
   return (
     <div className="glass flex items-center gap-1 rounded-full p-1" role="group" aria-label="Theme">
       {OPTIONS.map((o) => (
-        <button
-          key={o.value}
-          onClick={() => select(o.value)}
-          aria-label={`${o.label} theme`}
-          aria-pressed={theme === o.value}
-          className={`rounded-full px-2.5 py-1 text-sm transition-all duration-300 ${
-            theme === o.value
-              ? "bg-primary/15 scale-105 ring-1 ring-primary/40"
-              : "opacity-60 hover:opacity-100"
-          }`}
-        >
-          <span aria-hidden>{o.icon}</span>
-        </button>
+        (() => {
+          const ThemeIcon = o.icon;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => select(o.value)}
+              aria-label={`${o.label} theme`}
+              aria-pressed={theme === o.value}
+              title={`${o.label} theme`}
+              className={`flex size-8 items-center justify-center rounded-full transition-all duration-300 ${
+                theme === o.value
+                  ? "scale-105 bg-primary/15 text-primary ring-1 ring-primary/40"
+                  : "text-muted-foreground opacity-70 hover:text-foreground hover:opacity-100"
+              }`}
+            >
+              <ThemeIcon className="size-4" aria-hidden="true" />
+            </button>
+          );
+        })()
       ))}
     </div>
   );

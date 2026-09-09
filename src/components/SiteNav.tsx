@@ -1,7 +1,11 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, UserRound, X } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { Button } from "./ui/button";
+import { useAuth } from "./AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 
 const LINKS = [
   { to: "/", label: "Home" },
@@ -12,6 +16,16 @@ const LINKS = [
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const signOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    await navigate({ to: "/auth", replace: true });
+  };
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
@@ -36,9 +50,25 @@ export function SiteNav() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <button className="hidden rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105 md:inline-flex">
-            Sign In
-          </button>
+          {!loading &&
+            (user ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="hidden rounded-full md:inline-flex"
+                onClick={signOut}
+              >
+                <LogOut aria-hidden="true" />
+                Sign out
+              </Button>
+            ) : (
+              <Button asChild className="hidden rounded-full md:inline-flex">
+                <Link to="/auth">
+                  <UserRound aria-hidden="true" />
+                  Sign in
+                </Link>
+              </Button>
+            ))}
           <button
             className="rounded-full p-2 md:hidden"
             onClick={() => setOpen((v) => !v)}
@@ -61,9 +91,20 @@ export function SiteNav() {
               {l.label}
             </Link>
           ))}
-          <button className="mt-1 w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground">
-            Sign In
-          </button>
+          {!loading &&
+            (user ? (
+              <Button type="button" onClick={signOut} className="mt-1 w-full rounded-xl">
+                <LogOut aria-hidden="true" />
+                Sign out
+              </Button>
+            ) : (
+              <Button asChild className="mt-1 w-full rounded-xl">
+                <Link to="/auth" onClick={() => setOpen(false)}>
+                  <UserRound aria-hidden="true" />
+                  Sign in
+                </Link>
+              </Button>
+            ))}
         </div>
       )}
     </header>
