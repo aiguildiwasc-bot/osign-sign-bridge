@@ -11,13 +11,15 @@ const AuthContext = createContext<AuthContextValue>({ user: null, loading: true 
 
 async function ensureProfile(user: User) {
   const displayName =
-    typeof user.user_metadata?.display_name === "string"
-      ? user.user_metadata.display_name
-      : typeof user.user_metadata?.full_name === "string"
-        ? user.user_metadata.full_name
+    typeof user.user_metadata?.["display_name"] === "string"
+      ? user.user_metadata["display_name"]
+      : typeof user.user_metadata?.["full_name"] === "string"
+        ? user.user_metadata["full_name"]
         : user.email?.split("@")[0] ?? "OSIGN User";
   const avatarUrl =
-    typeof user.user_metadata?.avatar_url === "string" ? user.user_metadata.avatar_url : null;
+    typeof user.user_metadata?.["avatar_url"] === "string"
+      ? user.user_metadata["avatar_url"]
+      : null;
 
   await supabase.from("profiles").upsert(
     {
